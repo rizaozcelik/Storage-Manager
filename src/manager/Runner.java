@@ -1,10 +1,12 @@
 package manager;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Runner {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		StorageManager manager = new StorageManager();
 		Scanner scan = new Scanner(System.in);
 		boolean exited = false;
 		while (!exited) {
@@ -20,11 +22,11 @@ public class Runner {
 				System.out.println("Press 3 to List all types");
 				choice = scan.nextInt();
 				if (choice == 1) {
-					createType(scan);
+					StorageManager.createType(scan);
 				} else if (choice == 2) {
-					deleteType(scan);
+					StorageManager.deleteType(scan);
 				} else if (choice == 3) {
-					listTypes();
+					StorageManager.listTypes();
 				}
 				break;
 			case 2:
@@ -36,15 +38,15 @@ public class Runner {
 				System.out.println("Press 5 to Delete a record");
 				choice = scan.nextInt();
 				if (choice == 1) {
-					createRecord(scan);
+					StorageManager.createRecord(scan);
 				} else if (choice == 2) {
-					updateRecord(scan);
+					StorageManager.updateRecord(scan);
 				} else if (choice == 3) {
-					searchRecord(scan);
+					StorageManager.searchRecord(scan);
 				} else if (choice == 4) {
-					listRecords(scan);
+					StorageManager.listRecords(scan);
 				} else if (choice == 5) {
-					deleteRecord(scan);
+					StorageManager.deleteRecord(scan);
 				}
 				break;
 			case 3:
@@ -56,47 +58,9 @@ public class Runner {
 				break;
 			}
 		}
+		manager.exit();
 		scan.close();
 	}
 
-	private static void createType(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void deleteType(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void listTypes() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void createRecord(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void updateRecord(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void searchRecord(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void listRecords(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private static void deleteRecord(Scanner scan) {
-		// TODO Auto-generated method stub
-
-	}
-
+	
 }
