@@ -38,7 +38,7 @@ public class StorageManager {
 		welcome("type name");
 		String typeName = scan.next();
 		String dataFileName = (typeName + ".txt").toLowerCase();
-		File f = new File("./data/dataFiles/"+dataFileName);
+		File f = new File("./data/dataFiles/" + dataFileName);
 		f.createNewFile();
 		welcome("number of fields");
 		int numberOfFields = scan.nextInt();
@@ -60,32 +60,16 @@ public class StorageManager {
 			isWriterClosed = true;
 		}
 		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
-		int size = (int) raf.length();
-		int byteIndex = 0;
 		welcome("data type to be deleted.");
 		String typeName = scan.next();
-		
-		while(byteIndex < size){
-			raf.seek(byteIndex); 
-			String name = "";
-			char c = 'a';
-			while(c != '#'){
-				c = (char)raf.read();
-				name = name + c;
-			}
-			name = name.substring(0, name.length()-1);
-			if(name.equalsIgnoreCase(typeName)){
-				raf.seek(byteIndex + 36);
-				raf.write((int)'0'); 
-				raf.close(); 
-				break;
-			}
-			byteIndex += ENTRY_SIZE;
-		}
-		
+		long startByteOfTheType = findStartingByteOfDataType(raf, typeName);
+		raf.seek(startByteOfTheType + 36);
+		raf.write((int) '0');
+		raf.close();
+
 		String fileToDelete = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
 		File f = new File(fileToDelete);
-		if(f.exists()){
+		if (f.exists()) {
 			f.delete();
 		}
 	}
@@ -116,9 +100,23 @@ public class StorageManager {
 		file.close();
 	}
 
-	public static void createRecord(Scanner scan) {
-		// TODO Auto-generated method stub
+	public static void createRecord(Scanner scan) throws IOException {
+		welcome("record type");
+		String typeName = scan.next();
+		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
+		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
+		raf.seek(startingByteOfType + 34);
+		raf.close();
+		int numberOfFields = (int) raf.read();
+		int[] values = new int[numberOfFields];
+		for (int i = 0; i < numberOfFields; i++) {
+			values[i] = scan.nextInt();
+		}
 
+		raf = new RandomAccessFile(typeName.toLowerCase() + ".txt", "rw");
+		if(raf.length() == 0){
+			appendNewPageToDataFile(raf);
+		}
 	}
 
 	public static void updateRecord(Scanner scan) {
@@ -147,6 +145,30 @@ public class StorageManager {
 
 	public void exit() throws IOException {
 		pw.close();
+	}
+	
+	private static void appendNewPageToDataFile(RandomAccessFile raf) {
+		
+	}
+
+	private static long findStartingByteOfDataType(RandomAccessFile raf, String typeName) throws IOException {
+		long size = (long) raf.length();
+		long byteIndex = 0;
+		while (byteIndex < size) {
+			raf.seek(byteIndex);
+			String name = "";
+			char c = 'a';
+			while (c != '#') {
+				c = (char) raf.read();
+				name = name + c;
+			}
+			name = name.substring(0, name.length() - 1);
+			if (name.equalsIgnoreCase(typeName)) {
+				return byteIndex;
+			}
+			byteIndex += ENTRY_SIZE;
+		}
+		return -1;
 	}
 
 }

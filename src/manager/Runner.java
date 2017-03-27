@@ -6,6 +6,7 @@ import java.util.Scanner;
 public class Runner {
 
 	public static void main(String[] args) throws IOException {
+		System.exit(1);
 		StorageManager manager = new StorageManager();
 		Scanner scan = new Scanner(System.in);
 		boolean exited = false;
