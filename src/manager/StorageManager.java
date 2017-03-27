@@ -37,8 +37,8 @@ public class StorageManager {
 		}
 		welcome("type name");
 		String typeName = scan.next();
-		String dataFileName = typeName + ".txt";
-		File f = new File(dataFileName);
+		String dataFileName = (typeName + ".txt").toLowerCase();
+		File f = new File("./data/dataFiles/"+dataFileName);
 		f.createNewFile();
 		welcome("number of fields");
 		int numberOfFields = scan.nextInt();
@@ -83,7 +83,11 @@ public class StorageManager {
 			byteIndex += ENTRY_SIZE;
 		}
 		
-
+		String fileToDelete = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
+		File f = new File(fileToDelete);
+		if(f.exists()){
+			f.delete();
+		}
 	}
 
 	public static void listTypes() throws FileNotFoundException {
