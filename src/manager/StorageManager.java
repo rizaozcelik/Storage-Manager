@@ -13,7 +13,7 @@ public class StorageManager {
 
 	public static final String SYSTEM_CATALOGUE_PATH = "./data/system_catalogue.txt";
 	public static final int SYS_CAT_ENTRY_SIZE = 191;
-	public static final int RECORD_SIZE = 85;
+	public static final int RECORD_SIZE = 87;
 
 	public static FileWriter fw;
 	public static BufferedWriter bw;
@@ -125,7 +125,30 @@ public class StorageManager {
 			s.replace(15, 100, r.toString());
 			raf.writeBytes(s.toString());
 		} else {
-			
+			boolean inserted = false;
+			long pageBaseIndex = 0;
+			while (!inserted) {
+				raf.seek(pageBaseIndex + 10);
+				int ispageEmptyFlag = raf.read() - '0';
+				if (ispageEmptyFlag == 1) {
+					// Page has deallocated space
+					boolean recordsAreFull = true;
+					long recordBaseIndex = 17;
+					while (recordsAreFull) {
+						raf.seek(recordBaseIndex);
+						int isRecordEmptyFlag = raf.read() - '0'; 
+						System.out.println(isRecordEmptyFlag);
+						if (isRecordEmptyFlag == 1) {
+							recordBaseIndex += RECORD_SIZE + 1;
+						} else {
+							System.out.println(isRecordEmptyFlag);
+							inserted = true;
+							recordsAreFull = false;
+						}
+
+					}
+				}
+			}
 		}
 		raf.close();
 	}
