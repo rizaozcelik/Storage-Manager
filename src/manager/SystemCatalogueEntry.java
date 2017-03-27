@@ -4,7 +4,7 @@ public class SystemCatalogueEntry {
 	String typeName, dataFileName;
 	int numberOfFields;
 	String[] fields;
-	int isValid;
+	byte isValid;
 
 	public SystemCatalogueEntry(String typeName, String dataFileName, int numberOfFields, String[] fields) {
 		this.typeName = typeName;
