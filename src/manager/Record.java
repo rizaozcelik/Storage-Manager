@@ -5,10 +5,10 @@ public class Record {
 	byte isLastRecord;
 	byte isValid;
 
-	public Record(int[] values, byte isLastRecord, byte isValid) {
+	public Record(int[] values, int isLastRecord, int isValid) {
 		this.values = values;
-		this.isLastRecord = isLastRecord;
-		this.isValid = isValid;
+		this.isLastRecord = (byte) isLastRecord;
+		this.isValid = (byte) isValid;
 	}
 
 	@Override

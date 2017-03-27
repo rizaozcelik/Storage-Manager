@@ -1,12 +1,21 @@
 package manager;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class Runner {
 
 	public static void main(String[] args) throws IOException {
-		System.exit(1);
+		int[] a = new int[]{5,4,2};
+//		Record r = new Record(a, (byte)1, (byte)1);
+//		PrintWriter pw = new PrintWriter("test.txt");
+//		Page p = new Page(1);
+//		pw.print(p);
+//		pw.close();
+//		System.out.println(new File("test.txt").length());
+//		System.exit(1);
 		StorageManager manager = new StorageManager();
 		Scanner scan = new Scanner(System.in);
 		boolean exited = false;

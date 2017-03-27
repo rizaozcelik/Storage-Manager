@@ -12,7 +12,8 @@ import java.util.Scanner;
 public class StorageManager {
 
 	public static final String SYSTEM_CATALOGUE_PATH = "./data/system_catalogue.txt";
-	public static final int ENTRY_SIZE = 191;
+	public static final int SYS_CAT_ENTRY_SIZE = 191;
+	public static final int RECORD_SIZE = 85;
 
 	public static FileWriter fw;
 	public static BufferedWriter bw;
@@ -106,17 +107,27 @@ public class StorageManager {
 		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
 		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
 		raf.seek(startingByteOfType + 34);
-		raf.close();
-		int numberOfFields = (int) raf.read();
+		int numberOfFields = raf.read() - '0';
 		int[] values = new int[numberOfFields];
+		welcome("enter " + numberOfFields + " fields");
 		for (int i = 0; i < numberOfFields; i++) {
 			values[i] = scan.nextInt();
 		}
+		Record r = new Record(values, 1, 1);
 
-		raf = new RandomAccessFile(typeName.toLowerCase() + ".txt", "rw");
-		if(raf.length() == 0){
-			appendNewPageToDataFile(raf);
+		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
+		raf.close();
+		raf = new RandomAccessFile(dataFileName, "rw");
+		if (raf.length() == 0) {
+			Page p = new Page(1);
+			StringBuilder s = new StringBuilder(p.toString());
+			s.replace(5, 6, "1");
+			s.replace(15, 100, r.toString());
+			raf.writeBytes(s.toString());
+		} else {
+			
 		}
+		raf.close();
 	}
 
 	public static void updateRecord(Scanner scan) {
@@ -146,10 +157,6 @@ public class StorageManager {
 	public void exit() throws IOException {
 		pw.close();
 	}
-	
-	private static void appendNewPageToDataFile(RandomAccessFile raf) {
-		
-	}
 
 	private static long findStartingByteOfDataType(RandomAccessFile raf, String typeName) throws IOException {
 		long size = (long) raf.length();
@@ -166,7 +173,7 @@ public class StorageManager {
 			if (name.equalsIgnoreCase(typeName)) {
 				return byteIndex;
 			}
-			byteIndex += ENTRY_SIZE;
+			byteIndex += SYS_CAT_ENTRY_SIZE;
 		}
 		return -1;
 	}
