@@ -105,19 +105,16 @@ public class StorageManager {
 	public static void createRecord(Scanner scan) throws IOException {
 		welcome("record type");
 		String typeName = scan.next();
-		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
-		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
-		raf.seek(startingByteOfType + 34); // Read number of fields in data type
-		int numberOfFields = raf.read() - '0'; // convert it to a int
+		int numberOfFields = getNumberOfFieldsOfDataType(typeName);
+
 		int[] values = new int[numberOfFields];
 		welcome("enter " + numberOfFields + " fields");
 		for (int i = 0; i < numberOfFields; i++) {
 			values[i] = scan.nextInt();
 		}
 		Record r = new Record(values, 1, 1);
-		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
-		raf.close(); // Close sys_cat
-		raf = new RandomAccessFile(dataFileName, "rw"); // open data file
+
+		RandomAccessFile raf = getStreamOfDataType(typeName);
 		int pageIdCounter = 0;
 		if (raf.length() == 0) {
 			// This is the first record that will be created in the data type
@@ -194,16 +191,11 @@ public class StorageManager {
 	}
 
 	public static void listRecords(Scanner scan) throws IOException {
-		welcome(" record type");
+		welcome("record type");
 		String typeName = scan.next();
-		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
-		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
-		raf.seek(startingByteOfType + 34); // Read number of fields in data type
-		int numberOfFields = raf.read() - '0'; // convert it to a int
-		raf.close(); // Close sys_cat
+		int numberOfFields = getNumberOfFieldsOfDataType(typeName);
 
-		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
-		raf = new RandomAccessFile(dataFileName, "rw"); // open data file
+		RandomAccessFile raf = getStreamOfDataType(typeName);
 		long pageBaseIndex = 0;
 		int recordCounter = 0;
 		int wasLastPage = 0;
@@ -212,21 +204,21 @@ public class StorageManager {
 			for (int i = 0; i < 11; i++) {
 				raf.seek(recordBaseIndex);
 				int isRecordValidFlag = raf.read() - '0';
-				if(isRecordValidFlag == 1){
+				if (isRecordValidFlag == 1) {
 					recordCounter++;
-					System.out.print(recordCounter + ": ");
-					for(int j = 0; j < numberOfFields; j++){
+					System.out.print("Record " + recordCounter + ": ");
+					for (int j = 0; j < numberOfFields; j++) {
 						// 8 is field size
-						long valIndex = recordBaseIndex + j*8+j+2; 
+						long valIndex = recordBaseIndex + j * 8 + j + 2;
 						raf.seek(valIndex);
 						int val = raf.read() - '0';
-						while(val <= 9 && val >=0){
+						while (val <= 9 && val >= 0) {
 							valIndex++;
 							System.out.print(val);
 							raf.seek(valIndex);
-							val = raf.read() -'0';
+							val = raf.read() - '0';
 						}
-						if(j != numberOfFields-1){
+						if (j != numberOfFields - 1) {
 							System.out.print(", ");
 						}
 					}
@@ -246,12 +238,23 @@ public class StorageManager {
 
 	}
 
-	private static void welcome(String word) {
-		System.out.println("Please enter the " + word);
+	private static long getIsValidIndexOfARecord(Scanner scan) throws IOException {
+		welcome("type of the record");
+		String typeName = scan.next().toLowerCase();
+		welcome("index of the field to search on");
+		welcome("value of the field to search on");
+		int numberOfFields = getNumberOfFieldsOfDataType(typeName);
+		// TODO: implement search here.
+		return -1;
 	}
 
-	public void exit() throws IOException {
-		pw.close();
+	private static int getNumberOfFieldsOfDataType(String typeName) throws IOException {
+		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
+		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
+		raf.seek(startingByteOfType + 34); // Read number of fields in data type
+		int numberOfFields = raf.read() - '0'; // convert it to a int
+		raf.close(); // Close sys_cat
+		return numberOfFields;
 	}
 
 	private static long findStartingByteOfDataType(RandomAccessFile raf, String typeName) throws IOException {
@@ -274,4 +277,19 @@ public class StorageManager {
 		return -1;
 	}
 
+	private static RandomAccessFile getStreamOfDataType(String typeName) throws IOException {
+		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
+		RandomAccessFile raf = new RandomAccessFile(dataFileName, "rw"); // open
+																			// data
+																			// file
+		return raf;
+	}
+
+	private static void welcome(String word) {
+		System.out.println("Please enter the " + word);
+	}
+
+	public void exit() throws IOException {
+		pw.close();
+	}
 }
