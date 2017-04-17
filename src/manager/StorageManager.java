@@ -131,13 +131,14 @@ public class StorageManager {
 			boolean inserted = false;
 			long pageBaseIndex = 0;
 			while (!inserted) {
-				pageIdCounter++; // Will be used for new page creation if necessary
+				pageIdCounter++; // Will be used for new page creation if
+									// necessary
 				if (Page.getHasSpace(raf, pageBaseIndex) == 1) {
 					// Page has deallocated space
 					int recordCounter = 0;
 					boolean recordsAreFull = true;
 					// Index of isValid field is 17
-					long recordBaseIndex = pageBaseIndex + 17; 
+					long recordBaseIndex = pageBaseIndex + 17;
 					while (recordsAreFull) {
 						recordCounter++;
 						if (recordCounter == 11) {
@@ -147,7 +148,7 @@ public class StorageManager {
 							Page.setIsLastPage(raf, pageBaseIndex, "0");
 							long l = raf.length();
 							raf.seek(l);
-							raf.writeBytes((new Page(pageIdCounter+1)).toString());
+							raf.writeBytes((new Page(pageIdCounter + 1)).toString());
 							pageBaseIndex += PAGE_SIZE;
 							recordBaseIndex = pageBaseIndex + 17;
 						}
@@ -155,9 +156,10 @@ public class StorageManager {
 						int isRecordValidFlag = raf.read() - '0';
 						if (isRecordValidFlag == 1) {
 							if (recordCounter != 11) {
-								// update isLast field of record. It is 2 index before isValid
+								// update isLast field of record. It is 2 index
+								// before isValid
 								raf.seek(recordBaseIndex - 2);
-								raf.writeBytes("0"); 
+								raf.writeBytes("0");
 							}
 							recordBaseIndex += RECORD_SIZE + 1;
 						} else if (isRecordValidFlag == 0) {
@@ -191,9 +193,52 @@ public class StorageManager {
 
 	}
 
-	public static void listRecords(Scanner scan) {
-		// TODO Auto-generated method stub
+	public static void listRecords(Scanner scan) throws IOException {
+		welcome(" record type");
+		String typeName = scan.next();
+		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
+		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
+		raf.seek(startingByteOfType + 34); // Read number of fields in data type
+		int numberOfFields = raf.read() - '0'; // convert it to a int
+		raf.close(); // Close sys_cat
 
+		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
+		raf = new RandomAccessFile(dataFileName, "rw"); // open data file
+		long pageBaseIndex = 0;
+		int recordCounter = 0;
+		int wasLastPage = 0;
+		while (wasLastPage == 0) {
+			long recordBaseIndex = pageBaseIndex + 17;
+			for (int i = 0; i < 11; i++) {
+				raf.seek(recordBaseIndex);
+				int isRecordValidFlag = raf.read() - '0';
+				if(isRecordValidFlag == 1){
+					recordCounter++;
+					System.out.print(recordCounter + ": ");
+					for(int j = 0; j < numberOfFields; j++){
+						// 8 is field size
+						long valIndex = recordBaseIndex + j*8+j+2; 
+						raf.seek(valIndex);
+						int val = raf.read() - '0';
+						while(val <= 9 && val >=0){
+							valIndex++;
+							System.out.print(val);
+							raf.seek(valIndex);
+							val = raf.read() -'0';
+						}
+						if(j != numberOfFields-1){
+							System.out.print(", ");
+						}
+					}
+					System.out.println();
+				}
+				recordBaseIndex += RECORD_SIZE + 1;
+			}
+			wasLastPage = Page.getIsLastPage(raf, pageBaseIndex);
+
+			pageBaseIndex += 1024;
+		}
+		raf.close();
 	}
 
 	public static void deleteRecord(Scanner scan) {

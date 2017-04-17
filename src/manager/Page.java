@@ -25,6 +25,11 @@ public class Page {
 		raf.writeBytes(value);
 	}
 	
+	public static int getIsLastPage(RandomAccessFile raf, long pageBaseIndex) throws IOException{
+		raf.seek(pageBaseIndex + 8);
+		return raf.read() - '0';
+	}
+	
 	public static void setIsLastPage(RandomAccessFile raf, long pageBaseIndex, String value) throws IOException{
 		raf.seek(pageBaseIndex + 8);
 		raf.writeBytes(value);
