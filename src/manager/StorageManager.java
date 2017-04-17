@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Scanner;
 
+import org.omg.CosNaming.IstringHelper;
+
 public class StorageManager {
 
 	public static final String SYSTEM_CATALOGUE_PATH = "./data/system_catalogue.txt";
@@ -106,19 +108,19 @@ public class StorageManager {
 		String typeName = scan.next();
 		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "r");
 		long startingByteOfType = findStartingByteOfDataType(raf, typeName);
-		raf.seek(startingByteOfType + 34);
-		int numberOfFields = raf.read() - '0';
+		raf.seek(startingByteOfType + 34); // Read number of fields in data type
+		int numberOfFields = raf.read() - '0'; // convert it to a int
 		int[] values = new int[numberOfFields];
 		welcome("enter " + numberOfFields + " fields");
 		for (int i = 0; i < numberOfFields; i++) {
 			values[i] = scan.nextInt();
 		}
 		Record r = new Record(values, 1, 1);
-
 		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
-		raf.close();
-		raf = new RandomAccessFile(dataFileName, "rw");
+		raf.close();  // Close sys_cat
+		raf = new RandomAccessFile(dataFileName, "rw"); // open data file
 		if (raf.length() == 0) {
+			// This is the first record that will be created
 			Page p = new Page(1);
 			StringBuilder s = new StringBuilder(p.toString());
 			s.replace(5, 6, "1");
@@ -128,25 +130,31 @@ public class StorageManager {
 			boolean inserted = false;
 			long pageBaseIndex = 0;
 			while (!inserted) {
-				raf.seek(pageBaseIndex + 10);
-				int ispageEmptyFlag = raf.read() - '0';
-				if (ispageEmptyFlag == 1) {
+				if (Page.getHasSpace(raf, pageBaseIndex) == 1) {
 					// Page has deallocated space
 					boolean recordsAreFull = true;
-					long recordBaseIndex = 17;
+					long recordBaseIndex = 17; // Index of isValid field
 					while (recordsAreFull) {
 						raf.seek(recordBaseIndex);
-						int isRecordEmptyFlag = raf.read() - '0'; 
-						System.out.println(isRecordEmptyFlag);
-						if (isRecordEmptyFlag == 1) {
+						int isRecordValidFlag = raf.read() - '0'; 
+						if (isRecordValidFlag == 1) {
+							raf.seek(recordBaseIndex-2);
+							raf.writeBytes("0"); // update isLast field of record
 							recordBaseIndex += RECORD_SIZE + 1;
 						} else {
-							System.out.println(isRecordEmptyFlag);
+							if(Page.isThereRecordBelow(raf, recordBaseIndex)){
+								r.isLastRecord = 0;
+							}
+							long startingIndexOfRecordInPage = recordBaseIndex-2; 
+							raf.seek(startingIndexOfRecordInPage);
+							raf.writeBytes(r.toString());
 							inserted = true;
 							recordsAreFull = false;
 						}
 
 					}
+				}else{
+					// move to next page
 				}
 			}
 		}

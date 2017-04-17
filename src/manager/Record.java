@@ -15,7 +15,7 @@ public class Record {
 	public String toString() {
 		String str = isLastRecord + "," + isValid;
 		for (int i = 0; i < values.length; i++) {
-			str = str + "," + padWithHashtag(values[i]);
+			str = str + "," + Utils.padWithHashtag(values[i]+"",8);
 		}
 		for (int i = values.length; i < 9; i++) {
 			str = str + ",########";
@@ -24,11 +24,5 @@ public class Record {
 		return str;
 	}
 
-	private String padWithHashtag(int i) {
-		String s = i + "";
-		while (s.length() < 8) {
-			s = s + "#";
-		}
-		return s;
-	}
+	
 }

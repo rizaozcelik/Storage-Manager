@@ -14,19 +14,13 @@ public class SystemCatalogueEntry {
 		this.isValid = 1;
 	}
 
-	private static String padWithHashtag(String word) {
-		while (word.length() < 16) {
-			word = word + "#";
-		}
-		return word;
-	}
-
+	
 	@Override
 	public String toString() {
-		String res = padWithHashtag(typeName) + "," + padWithHashtag(dataFileName) + "," + numberOfFields + ","
+		String res = Utils.padWithHashtag(typeName,16) + "," + Utils.padWithHashtag(dataFileName,16) + "," + numberOfFields + ","
 				+ isValid;
 		for (int i = 0; i < fields.length; i++) {
-			res = res + "," + padWithHashtag(fields[i]);
+			res = res + "," + Utils.padWithHashtag(fields[i],16);
 		}
 		for(int i = fields.length; i < 9; i++){
 			res = res + ","+"################";
