@@ -5,20 +5,29 @@ import java.io.RandomAccessFile;
 
 public class Page {
 	int ID;
-	int numberOfRecords;
 	byte isLastPage;
 	byte hasSpace;
 
 	public Page(int id) {
 		ID = id;
-		this.numberOfRecords = 0;
 		this.isLastPage = 1;
 		this.hasSpace = 1;
 	}
 	
 	public static int getHasSpace(RandomAccessFile raf, long pageBaseIndex) throws IOException{
 		raf.seek(pageBaseIndex + 10);
-		return raf.read() - '0';
+		int val = raf.read() - '0';
+		return val;
+	}
+	
+	public static void setHasSpace(RandomAccessFile raf, long pageBaseIndex, String value) throws IOException {
+		raf.seek(pageBaseIndex+10);
+		raf.writeBytes(value);
+	}
+	
+	public static void setIsLastPage(RandomAccessFile raf, long pageBaseIndex, String value) throws IOException{
+		raf.seek(pageBaseIndex + 8);
+		raf.writeBytes(value);
 	}
 	
 	public static boolean isThereRecordBelow(RandomAccessFile raf, long recordBaseIndex) throws IOException{
@@ -37,7 +46,7 @@ public class Page {
 
 	@Override
 	public String toString() {
-		String header = Utils.padWithHashtag(ID+"",4) + "|" + Utils.padWithHashtag(numberOfRecords+"",2) + "|" + isLastPage + "|" + hasSpace
+		String header = Utils.padWithHashtag(ID+"",7) + "|"+ isLastPage + "|" + hasSpace
 				+ "\n";
 		String page = header;
 		for(int i = 0; i < 11; i++){
@@ -51,5 +60,7 @@ public class Page {
 		page = page + "\n";
 		return page;
 	}
+
+	
 
 }

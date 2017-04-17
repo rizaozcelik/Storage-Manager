@@ -9,13 +9,12 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Scanner;
 
-import org.omg.CosNaming.IstringHelper;
-
 public class StorageManager {
 
 	public static final String SYSTEM_CATALOGUE_PATH = "./data/system_catalogue.txt";
 	public static final int SYS_CAT_ENTRY_SIZE = 191;
 	public static final int RECORD_SIZE = 87;
+	public static final int PAGE_SIZE = 1024;
 
 	public static FileWriter fw;
 	public static BufferedWriter bw;
@@ -117,35 +116,56 @@ public class StorageManager {
 		}
 		Record r = new Record(values, 1, 1);
 		String dataFileName = "./data/dataFiles/" + typeName.toLowerCase() + ".txt";
-		raf.close();  // Close sys_cat
+		raf.close(); // Close sys_cat
 		raf = new RandomAccessFile(dataFileName, "rw"); // open data file
+		int pageIdCounter = 0;
 		if (raf.length() == 0) {
-			// This is the first record that will be created
+			// This is the first record that will be created in the data type
 			Page p = new Page(1);
 			StringBuilder s = new StringBuilder(p.toString());
 			s.replace(5, 6, "1");
 			s.replace(15, 100, r.toString());
 			raf.writeBytes(s.toString());
 		} else {
+			// If there is already a page
 			boolean inserted = false;
 			long pageBaseIndex = 0;
 			while (!inserted) {
+				pageIdCounter++; // Will be used for new page creation if necessary
 				if (Page.getHasSpace(raf, pageBaseIndex) == 1) {
 					// Page has deallocated space
+					int recordCounter = 0;
 					boolean recordsAreFull = true;
-					long recordBaseIndex = 17; // Index of isValid field
+					// Index of isValid field is 17
+					long recordBaseIndex = pageBaseIndex + 17; 
 					while (recordsAreFull) {
+						recordCounter++;
+						if (recordCounter == 11) {
+							// It means that page is not actually empty.
+							// hence make adjustments and append a new page
+							Page.setHasSpace(raf, pageBaseIndex, "0");
+							Page.setIsLastPage(raf, pageBaseIndex, "0");
+							long l = raf.length();
+							raf.seek(l);
+							raf.writeBytes((new Page(pageIdCounter+1)).toString());
+							pageBaseIndex += PAGE_SIZE;
+							recordBaseIndex = pageBaseIndex + 17;
+						}
 						raf.seek(recordBaseIndex);
-						int isRecordValidFlag = raf.read() - '0'; 
+						int isRecordValidFlag = raf.read() - '0';
 						if (isRecordValidFlag == 1) {
-							raf.seek(recordBaseIndex-2);
-							raf.writeBytes("0"); // update isLast field of record
+							if (recordCounter != 11) {
+								// update isLast field of record. It is 2 index before isValid
+								raf.seek(recordBaseIndex - 2);
+								raf.writeBytes("0"); 
+							}
 							recordBaseIndex += RECORD_SIZE + 1;
-						} else {
-							if(Page.isThereRecordBelow(raf, recordBaseIndex)){
+						} else if (isRecordValidFlag == 0) {
+							// It could also be #
+							if (Page.isThereRecordBelow(raf, recordBaseIndex)) {
 								r.isLastRecord = 0;
 							}
-							long startingIndexOfRecordInPage = recordBaseIndex-2; 
+							long startingIndexOfRecordInPage = recordBaseIndex - 2;
 							raf.seek(startingIndexOfRecordInPage);
 							raf.writeBytes(r.toString());
 							inserted = true;
@@ -153,8 +173,8 @@ public class StorageManager {
 						}
 
 					}
-				}else{
-					// move to next page
+				} else {
+					pageBaseIndex += PAGE_SIZE;
 				}
 			}
 		}
