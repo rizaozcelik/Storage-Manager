@@ -7,7 +7,7 @@ public class SysCatPage {
 	public String toString(){
 		String ret = "";
 		String[] fields = new String[]{"#"};
-		SystemCatalogueEntry e = new SystemCatalogueEntry("", "", 0, fields);
+		SystemCatalogueEntry e = new SystemCatalogueEntry("", "", 0, fields, 0);
 		for(int i = 0; i < 5; i++){
 			ret += e.toString();
 		}

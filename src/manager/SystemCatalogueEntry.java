@@ -11,14 +11,14 @@ public class SystemCatalogueEntry {
 	String typeName, dataFileName;
 	int numberOfFields;
 	String[] fields;
-	byte isValid;
+	int isValid;
 
-	public SystemCatalogueEntry(String typeName, String dataFileName, int numberOfFields, String[] fields) {
+	public SystemCatalogueEntry(String typeName, String dataFileName, int numberOfFields, String[] fields, int isValid) {
 		this.typeName = typeName;
 		this.dataFileName = dataFileName;
 		this.numberOfFields = numberOfFields;
 		this.fields = fields;
-		this.isValid = 1;
+		this.isValid = isValid;
 	}
 
 	public static int getNumberOfFieldsOfDataType(String typeName) throws IOException {

@@ -29,7 +29,7 @@ public class StorageManager {
 			String fieldName = scan.next();
 			fields[i] = fieldName;
 		}
-		SystemCatalogueEntry e = new SystemCatalogueEntry(typeName, dataFileName, numberOfFields, fields);
+		SystemCatalogueEntry e = new SystemCatalogueEntry(typeName, dataFileName, numberOfFields, fields,1);
 		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
 		boolean inserted = false;
 		int counter = 0;
@@ -39,7 +39,6 @@ public class StorageManager {
 			raf.seek(startIndexOfNewEntry);
 			int c = raf.read();
 			boolean isFull = c != (int) '#';
-			System.out.println(c);
 			if (c == -1) {
 				FileWriter fw = new FileWriter(SYSTEM_CATALOGUE_PATH, true);
 				fw.write(new SysCatPage().toString());// appends the string to the file
@@ -70,7 +69,6 @@ public class StorageManager {
 		welcome("data type to be deleted.");
 		String typeName = scan.next();
 		long startByteOfTheType = SystemCatalogueEntry.findStartingByteOfDataType(raf, typeName);
-		System.out.println(startByteOfTheType);
 		raf.seek(startByteOfTheType + 36);
 		raf.write((int) '0');
 		raf.close();
