@@ -2,6 +2,7 @@ package manager;
 
 public class SysCatPage {
 	
+	
 	@Override
 	public String toString(){
 		String ret = "";

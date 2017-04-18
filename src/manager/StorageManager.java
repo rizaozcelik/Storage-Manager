@@ -58,7 +58,7 @@ public class StorageManager {
 			} 
 			startIndexOfNewEntry += SystemCatalogueEntry.SYS_CAT_ENTRY_SIZE;
 			if(counter % 6 == 0){
-				startIndexOfNewEntry = counter / 6 * 1025;
+				startIndexOfNewEntry = counter / 6 * (PAGE_SIZE+1);
 			}
 		}
 		raf.close();
@@ -70,6 +70,7 @@ public class StorageManager {
 		welcome("data type to be deleted.");
 		String typeName = scan.next();
 		long startByteOfTheType = SystemCatalogueEntry.findStartingByteOfDataType(raf, typeName);
+		System.out.println(startByteOfTheType);
 		raf.seek(startByteOfTheType + 36);
 		raf.write((int) '0');
 		raf.close();

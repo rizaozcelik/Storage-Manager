@@ -33,7 +33,9 @@ public class SystemCatalogueEntry {
 	public static long findStartingByteOfDataType(RandomAccessFile raf, String typeName) throws IOException {
 		long size = (long) raf.length();
 		long byteIndex = 0;
+		int counter = 0;
 		while (byteIndex < size) {
+			counter ++;
 			raf.seek(byteIndex);
 			String name = "";
 			char c = 'a';
@@ -46,6 +48,9 @@ public class SystemCatalogueEntry {
 				return byteIndex;
 			}
 			byteIndex += SYS_CAT_ENTRY_SIZE;
+			if(counter % 6 == 0){
+				byteIndex = (Page.PAGE_SIZE+1)*counter/6;
+			}
 		}
 		return -1;
 	}
