@@ -29,7 +29,7 @@ public class StorageManager {
 			String fieldName = scan.next();
 			fields[i] = fieldName;
 		}
-		SystemCatalogueEntry e = new SystemCatalogueEntry(typeName, dataFileName, numberOfFields, fields,1);
+		SystemCatalogueEntry e = new SystemCatalogueEntry(typeName, dataFileName, numberOfFields, fields, 1);
 		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
 		boolean inserted = false;
 		int counter = 0;
@@ -41,7 +41,8 @@ public class StorageManager {
 			boolean isFull = c != (int) '#';
 			if (c == -1) {
 				FileWriter fw = new FileWriter(SYSTEM_CATALOGUE_PATH, true);
-				fw.write(new SysCatPage().toString());// appends the string to the file
+				fw.write(new SysCatPage().toString());// appends the string to
+														// the file
 				fw.close();
 				raf.close();
 				raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
@@ -54,10 +55,10 @@ public class StorageManager {
 				raf.seek(startIndexOfNewEntry);
 				raf.writeBytes(e.toString());
 				inserted = true;
-			} 
+			}
 			startIndexOfNewEntry += SystemCatalogueEntry.SYS_CAT_ENTRY_SIZE;
-			if(counter % 6 == 0){
-				startIndexOfNewEntry = counter / 6 * (PAGE_SIZE+1);
+			if (counter % 6 == 0) {
+				startIndexOfNewEntry = counter / 6 * (PAGE_SIZE + 1);
 			}
 		}
 		raf.close();
@@ -132,8 +133,8 @@ public class StorageManager {
 			boolean inserted = false;
 			long pageBaseIndex = 0;
 			while (!inserted) {
-				pageIdCounter++; // Will be used for new page creation if
-									// necessary
+				// Will be used for new page creation if necessary
+				pageIdCounter++;
 				if (Page.getHasSpace(raf, pageBaseIndex) == 1) {
 					// Page has deallocated space
 					int recordCounter = 0;
@@ -142,14 +143,16 @@ public class StorageManager {
 					long recordBaseIndex = pageBaseIndex + 17;
 					while (recordsAreFull) {
 						recordCounter++;
-						if (recordCounter == 11) {
+						if (recordCounter == 12) {
 							// It means that page is not actually empty.
 							// hence make adjustments and append a new page
 							Page.setHasSpace(raf, pageBaseIndex, "0");
 							Page.setIsLastPage(raf, pageBaseIndex, "0");
 							long l = raf.length();
-							raf.seek(l);
-							raf.writeBytes((new Page(pageIdCounter + 1)).toString());
+							if (l < pageIdCounter * PAGE_SIZE + 20) {
+								raf.seek(l);
+								raf.writeBytes((new Page(pageIdCounter + 1)).toString());
+							}
 							pageBaseIndex += PAGE_SIZE;
 							recordBaseIndex = pageBaseIndex + 17;
 						}
