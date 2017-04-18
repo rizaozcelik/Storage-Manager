@@ -204,9 +204,9 @@ public class StorageManager {
 			int isLastFlag = raf.read() - '0';
 			if (isLastFlag == 0) {
 				newRecord.isLastRecord = 0;
-			} else if(isLastFlag == 1){
+			} else if (isLastFlag == 1) {
 				newRecord.isLastRecord = 1;
-			} else{
+			} else {
 				System.out.println("ERROR IN UPDATE");
 				System.exit(1);
 			}
@@ -291,6 +291,27 @@ public class StorageManager {
 			int pageNumber = (int) (r / PAGE_SIZE);
 			long pageBaseIndex = pageNumber * PAGE_SIZE;
 			Page.setHasSpace(raf, pageBaseIndex, "1");
+			raf.seek(r - 2);
+			int isLastFlag = raf.read() - '0';
+			long recordBaseIndex = r - RECORD_SIZE - 1;
+			if (isLastFlag == 1) {
+				// Last record in the page is deleted. Hence find the new last
+				// record.
+				boolean newLastFound = false;
+				while (!newLastFound) {
+					raf.seek(recordBaseIndex);
+					int isValidFlag = raf.read() - '0';
+					if (isValidFlag == 1) {
+						raf.seek(recordBaseIndex - 2);
+						raf.writeBytes("1");
+						newLastFound = true;
+					} else if(isValidFlag == -13){
+						// hashtag is found. Hence no other record in page. Break the loop.
+						newLastFound = true;
+					}
+					recordBaseIndex = recordBaseIndex - RECORD_SIZE - 1;
+				}
+			}
 		}
 		raf.close();
 	}
