@@ -191,7 +191,7 @@ public class StorageManager {
 			values[i] = scan.nextInt();
 		}
 		Record newRecord = new Record(values, 1, 1);
-		
+
 		welcome("index of the field to search on");
 		int searchIndex = scan.nextInt();
 		welcome("value of the field to search on");
@@ -199,11 +199,16 @@ public class StorageManager {
 
 		ArrayList<Long> recordsToUpdate = Record.getIsValidIndexOfARecord(scan, typeName, searchIndex, searchValue);
 		RandomAccessFile raf = Utils.getStreamOfDataType(typeName);
-		for(Long r : recordsToUpdate){
+		for (Long r : recordsToUpdate) {
 			raf.seek(r - 2);
 			int isLastFlag = raf.read() - '0';
-			if(isLastFlag == 0){
+			if (isLastFlag == 0) {
 				newRecord.isLastRecord = 0;
+			} else if(isLastFlag == 1){
+				newRecord.isLastRecord = 1;
+			} else{
+				System.out.println("ERROR IN UPDATE");
+				System.exit(1);
 			}
 			raf.seek(r - 2);
 			raf.writeBytes(newRecord.toString());
@@ -225,7 +230,7 @@ public class StorageManager {
 
 		for (Long l : res) {
 			for (int i = 0; i < numberOfFields; i++) {
-				long value = Record.getValueOfTheField(raf, l+2 + 9*i);
+				long value = Record.getValueOfTheField(raf, l + 2 + 9 * i);
 				System.out.print(value + " ");
 			}
 			System.out.println();
@@ -269,9 +274,25 @@ public class StorageManager {
 		raf.close();
 	}
 
-	public static void deleteRecord(Scanner scan) {
-		// TODO Auto-generated method stub
+	public static void deleteRecord(Scanner scan) throws IOException {
+		welcome("type of the record");
+		String typeName = scan.next().toLowerCase();
+		welcome("index of the field to search on");
+		int searchIndex = scan.nextInt();
+		welcome("value of the field to search on");
+		long searchValue = scan.nextInt();
 
+		ArrayList<Long> records = Record.getIsValidIndexOfARecord(scan, typeName, searchIndex, searchValue);
+		RandomAccessFile raf = Utils.getStreamOfDataType(typeName);
+
+		for (Long r : records) {
+			raf.seek(r);
+			raf.writeBytes("0");
+			int pageNumber = (int) (r / PAGE_SIZE);
+			long pageBaseIndex = pageNumber * PAGE_SIZE;
+			Page.setHasSpace(raf, pageBaseIndex, "1");
+		}
+		raf.close();
 	}
 
 	private static void welcome(String word) {

@@ -45,14 +45,15 @@ public class Record {
 				raf.seek(recordsFirstFieldIndex - 4);
 				int flag = raf.read() - '0';
 				wasLastRecord = (flag == 1);
-
 				recordsFirstFieldIndex += RECORD_SIZE + 1;
 
 			}
 			wasLastPage = Page.getIsLastPage(raf, pageBaseIndex);
 			pageBaseIndex += Page.PAGE_SIZE;
 		}
-
+		if(indices.size() == 0){
+			System.out.println("No record found matching your criterion");
+		}
 		return indices;
 	}
 
