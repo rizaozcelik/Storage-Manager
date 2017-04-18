@@ -1,11 +1,9 @@
 package manager;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -16,27 +14,8 @@ public class StorageManager {
 	public static final int RECORD_SIZE = Record.RECORD_SIZE;
 	public static final int PAGE_SIZE = Page.PAGE_SIZE;
 
-	public static FileWriter fw;
-	public static BufferedWriter bw;
-	public static PrintWriter pw;
-	public static boolean isWriterClosed;
-
-	public StorageManager() {
-		try {
-			fw = new FileWriter(SYSTEM_CATALOGUE_PATH, true);
-			bw = new BufferedWriter(fw);
-			pw = new PrintWriter(bw);
-			isWriterClosed = false;
-		} catch (IOException e) {
-			System.out.println("Error while opening writer");
-			isWriterClosed = true;
-		}
-	}
-
 	public static void createType(Scanner scan) throws IOException {
-		if (isWriterClosed) {
-			pw = new PrintWriter(bw);
-		}
+
 		welcome("type name");
 		String typeName = scan.next();
 		String dataFileName = (typeName + ".txt").toLowerCase();
@@ -51,16 +30,42 @@ public class StorageManager {
 			fields[i] = fieldName;
 		}
 		SystemCatalogueEntry e = new SystemCatalogueEntry(typeName, dataFileName, numberOfFields, fields);
-		pw.print(e);
-		pw.close();
-		isWriterClosed = true;
+		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
+		boolean inserted = false;
+		int counter = 0;
+		long startIndexOfNewEntry = 0;
+		while (!inserted) {
+			counter++;
+			raf.seek(startIndexOfNewEntry);
+			int c = raf.read();
+			boolean isFull = c != (int) '#';
+			System.out.println(c);
+			if (c == -1) {
+				FileWriter fw = new FileWriter(SYSTEM_CATALOGUE_PATH, true);
+				fw.write(new SysCatPage().toString());// appends the string to the file
+				fw.close();
+				raf.close();
+				raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
+				raf.seek(startIndexOfNewEntry);
+				c = raf.read();
+				isFull = c != (int) '#';
+			}
+
+			if (!isFull && counter % 6 != 0) {
+				raf.seek(startIndexOfNewEntry);
+				raf.writeBytes(e.toString());
+				inserted = true;
+			} 
+			startIndexOfNewEntry += SystemCatalogueEntry.SYS_CAT_ENTRY_SIZE;
+			if(counter % 6 == 0){
+				startIndexOfNewEntry = counter / 6 * 1025;
+			}
+		}
+		raf.close();
+
 	}
 
 	public static void deleteType(Scanner scan) throws IOException {
-		if (!isWriterClosed) {
-			pw.close();
-			isWriterClosed = true;
-		}
 		RandomAccessFile raf = new RandomAccessFile(SYSTEM_CATALOGUE_PATH, "rw");
 		welcome("data type to be deleted.");
 		String typeName = scan.next();
@@ -77,13 +82,13 @@ public class StorageManager {
 	}
 
 	public static void listTypes() throws FileNotFoundException {
-		if (!isWriterClosed) {
-			pw.close();
-			isWriterClosed = true;
-		}
 		Scanner file = new Scanner(new File(SYSTEM_CATALOGUE_PATH));
 		while (file.hasNextLine()) {
 			String entry = file.nextLine();
+			if (!entry.contains(",")) {
+				// This is empty line
+				continue;
+			}
 			String[] values = entry.split(",");
 			// Otherwise it means it is deleted since values[3] is isValid flag.
 			if (values[3].equals("1")) {
@@ -305,8 +310,9 @@ public class StorageManager {
 						raf.seek(recordBaseIndex - 2);
 						raf.writeBytes("1");
 						newLastFound = true;
-					} else if(isValidFlag == -13){
-						// hashtag is found. Hence no other record in page. Break the loop.
+					} else if (isValidFlag == -13) {
+						// hashtag is found. Hence no other record in page.
+						// Break the loop.
 						newLastFound = true;
 					}
 					recordBaseIndex = recordBaseIndex - RECORD_SIZE - 1;
@@ -320,7 +326,4 @@ public class StorageManager {
 		System.out.println("Please enter the " + word);
 	}
 
-	public void exit() throws IOException {
-		pw.close();
-	}
 }

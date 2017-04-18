@@ -14,7 +14,6 @@ public class Runner {
 //		pw.close();
 //		System.out.println(new File("test.txt").length());
 //		System.exit(1);
-		StorageManager manager = new StorageManager();
 		Scanner scan = new Scanner(System.in);
 		boolean exited = false;
 		while (!exited) {
@@ -66,7 +65,6 @@ public class Runner {
 				break;
 			}
 		}
-		manager.exit();
 		scan.close();
 	}
 
