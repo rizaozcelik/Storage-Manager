@@ -180,9 +180,35 @@ public class StorageManager {
 		raf.close();
 	}
 
-	public static void updateRecord(Scanner scan) {
-		// TODO Auto-generated method stub
+	public static void updateRecord(Scanner scan) throws IOException {
+		welcome("record type");
+		String typeName = scan.next();
+		int numberOfFields = SystemCatalogueEntry.getNumberOfFieldsOfDataType(typeName);
 
+		int[] values = new int[numberOfFields];
+		welcome("enter " + numberOfFields + " fields");
+		for (int i = 0; i < numberOfFields; i++) {
+			values[i] = scan.nextInt();
+		}
+		Record newRecord = new Record(values, 1, 1);
+		
+		welcome("index of the field to search on");
+		int searchIndex = scan.nextInt();
+		welcome("value of the field to search on");
+		long searchValue = scan.nextInt();
+
+		ArrayList<Long> recordsToUpdate = Record.getIsValidIndexOfARecord(scan, typeName, searchIndex, searchValue);
+		RandomAccessFile raf = Utils.getStreamOfDataType(typeName);
+		for(Long r : recordsToUpdate){
+			raf.seek(r - 2);
+			int isLastFlag = raf.read() - '0';
+			if(isLastFlag == 0){
+				newRecord.isLastRecord = 0;
+			}
+			raf.seek(r - 2);
+			raf.writeBytes(newRecord.toString());
+		}
+		raf.close();
 	}
 
 	public static void searchRecord(Scanner scan) throws IOException {
@@ -192,8 +218,19 @@ public class StorageManager {
 		int searchIndex = scan.nextInt();
 		welcome("value of the field to search on");
 		long searchValue = scan.nextInt();
+
 		ArrayList<Long> res = Record.getIsValidIndexOfARecord(scan, typeName, searchIndex, searchValue);
-		System.out.println(res);
+		int numberOfFields = SystemCatalogueEntry.getNumberOfFieldsOfDataType(typeName);
+		RandomAccessFile raf = Utils.getStreamOfDataType(typeName);
+
+		for (Long l : res) {
+			for (int i = 0; i < numberOfFields; i++) {
+				long value = Record.getValueOfTheField(raf, l+2 + 9*i);
+				System.out.print(value + " ");
+			}
+			System.out.println();
+		}
+
 	}
 
 	public static void listRecords(Scanner scan) throws IOException {
@@ -216,15 +253,7 @@ public class StorageManager {
 					for (int j = 0; j < numberOfFields; j++) {
 						// 8 is field size
 						long valIndex = recordBaseIndex + j * 8 + j + 2;
-						System.out.print(Page.getValueOfTheField(raf, valIndex));
-						// raf.seek(valIndex);
-						// int val = raf.read() - '0';
-						// while (val <= 9 && val >= 0) {
-						// valIndex++;
-						// System.out.print(val);
-						// raf.seek(valIndex);
-						// val = raf.read() - '0';
-						// }
+						System.out.print(Record.getValueOfTheField(raf, valIndex));
 						if (j != numberOfFields - 1) {
 							System.out.print(", ");
 						}

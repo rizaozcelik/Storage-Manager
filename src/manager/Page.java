@@ -52,18 +52,6 @@ public class Page {
 		return false;
 	}
 
-	public static long getValueOfTheField(RandomAccessFile raf, long valIndex) throws IOException {
-		String res = "";
-		raf.seek(valIndex);
-		int val = raf.read() - '0';
-		while (val <= 9 && val >= 0) {
-			valIndex++;
-			res = res + val;
-			raf.seek(valIndex);
-			val = raf.read() - '0';
-		}
-		return Long.parseLong(res);
-	}
 
 	@Override
 	public String toString() {

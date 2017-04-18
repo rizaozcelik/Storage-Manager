@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Record {
-	
+
 	public static final int RECORD_SIZE = 87;
-	
+
 	int[] values;
 	byte isLastRecord;
 	byte isValid;
@@ -19,7 +19,8 @@ public class Record {
 		this.isValid = (byte) isValid;
 	}
 
-	public static ArrayList<Long> getIsValidIndexOfARecord(Scanner scan, String typeName, int searchIndex, long searchValue) throws IOException {
+	public static ArrayList<Long> getIsValidIndexOfARecord(Scanner scan, String typeName, int searchIndex,
+			long searchValue) throws IOException {
 
 		ArrayList<Long> indices = new ArrayList<Long>();
 
@@ -31,10 +32,15 @@ public class Record {
 			long recordsFirstFieldIndex = pageBaseIndex + 19;
 			boolean wasLastRecord = false;
 			while (!wasLastRecord) {
+
 				long recordsDesiredFieldsIndex = recordsFirstFieldIndex + searchIndex * 9;
-				long val = Page.getValueOfTheField(raf, recordsDesiredFieldsIndex);
-				if (searchValue == val) {
-					indices.add(recordsFirstFieldIndex - 2);
+				raf.seek(recordsFirstFieldIndex - 2);
+				if (raf.read() - '0' == 1) {
+					// The record is valid
+					long val = getValueOfTheField(raf, recordsDesiredFieldsIndex);
+					if (searchValue == val) {
+						indices.add(recordsFirstFieldIndex - 2);
+					}
 				}
 				raf.seek(recordsFirstFieldIndex - 4);
 				int flag = raf.read() - '0';
@@ -50,12 +56,24 @@ public class Record {
 		return indices;
 	}
 
-	
+	public static long getValueOfTheField(RandomAccessFile raf, long valIndex) throws IOException {
+		String res = "";
+		raf.seek(valIndex);
+		int val = raf.read() - '0';
+		while (val <= 9 && val >= 0) {
+			valIndex++;
+			res = res + val;
+			raf.seek(valIndex);
+			val = raf.read() - '0';
+		}
+		return Long.parseLong(res);
+	}
+
 	@Override
 	public String toString() {
 		String str = isLastRecord + "," + isValid;
 		for (int i = 0; i < values.length; i++) {
-			str = str + "," + Utils.padWithHashtag(values[i]+"",8);
+			str = str + "," + Utils.padWithHashtag(values[i] + "", 8);
 		}
 		for (int i = values.length; i < 9; i++) {
 			str = str + ",########";
@@ -64,5 +82,4 @@ public class Record {
 		return str;
 	}
 
-	
 }
