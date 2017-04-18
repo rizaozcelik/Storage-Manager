@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Page {
+	
+	public static final int PAGE_SIZE = 1024;
+	
 	int ID;
 	byte isLastPage;
 	byte hasSpace;
