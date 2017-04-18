@@ -1,14 +1,12 @@
 package manager;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class Runner {
 
 	public static void main(String[] args) throws IOException {
-		int[] a = new int[]{5,4,2};
+//		int[] a = new int[]{5,4,2};
 //		Record r = new Record(a, (byte)1, (byte)1);
 //		PrintWriter pw = new PrintWriter("test.txt");
 //		Page p = new Page(1);

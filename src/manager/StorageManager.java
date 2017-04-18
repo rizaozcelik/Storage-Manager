@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class StorageManager {
@@ -185,9 +186,11 @@ public class StorageManager {
 
 	}
 
-	public static void searchRecord(Scanner scan) {
-		// TODO Auto-generated method stub
-
+	public static void searchRecord(Scanner scan) throws IOException {
+		ArrayList<Long> res = getIsValidIndexOfARecord(scan);
+		for (int i = 0; i < res.size(); i++) {
+			System.out.println(res.get(i));
+		}
 	}
 
 	public static void listRecords(Scanner scan) throws IOException {
@@ -210,14 +213,15 @@ public class StorageManager {
 					for (int j = 0; j < numberOfFields; j++) {
 						// 8 is field size
 						long valIndex = recordBaseIndex + j * 8 + j + 2;
-						raf.seek(valIndex);
-						int val = raf.read() - '0';
-						while (val <= 9 && val >= 0) {
-							valIndex++;
-							System.out.print(val);
-							raf.seek(valIndex);
-							val = raf.read() - '0';
-						}
+						System.out.print(Page.getValueOfTheField(raf, valIndex));
+						// raf.seek(valIndex);
+						// int val = raf.read() - '0';
+						// while (val <= 9 && val >= 0) {
+						// valIndex++;
+						// System.out.print(val);
+						// raf.seek(valIndex);
+						// val = raf.read() - '0';
+						// }
 						if (j != numberOfFields - 1) {
 							System.out.print(", ");
 						}
@@ -238,14 +242,41 @@ public class StorageManager {
 
 	}
 
-	private static long getIsValidIndexOfARecord(Scanner scan) throws IOException {
+	private static ArrayList<Long> getIsValidIndexOfARecord(Scanner scan) throws IOException {
 		welcome("type of the record");
 		String typeName = scan.next().toLowerCase();
 		welcome("index of the field to search on");
+		int searchIndex = scan.nextInt();
 		welcome("value of the field to search on");
-		int numberOfFields = getNumberOfFieldsOfDataType(typeName);
-		// TODO: implement search here.
-		return -1;
+		long searchValue = scan.nextInt();
+
+		ArrayList<Long> indices = new ArrayList<Long>();
+
+		RandomAccessFile raf = getStreamOfDataType(typeName);
+		long pageBaseIndex = 0;
+
+		int wasLastPage = 0;
+		while (wasLastPage == 0) {
+			long recordsFirstFieldIndex = pageBaseIndex + 19;
+			boolean wasLastRecord = false;
+			while (!wasLastRecord) {
+				long recordsDesiredFieldsIndex = recordsFirstFieldIndex + searchIndex * 9;
+				long val = Page.getValueOfTheField(raf, recordsDesiredFieldsIndex);
+				if (searchValue == val) {
+					indices.add(recordsFirstFieldIndex - 2);
+				}
+				raf.seek(recordsFirstFieldIndex - 4);
+				int flag = raf.read() - '0';
+				wasLastRecord = (flag == 1);
+
+				recordsFirstFieldIndex += RECORD_SIZE + 1;
+
+			}
+			wasLastPage = Page.getIsLastPage(raf, pageBaseIndex);
+			pageBaseIndex += PAGE_SIZE;
+		}
+
+		return indices;
 	}
 
 	private static int getNumberOfFieldsOfDataType(String typeName) throws IOException {
